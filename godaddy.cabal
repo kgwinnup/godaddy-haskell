@@ -1,0 +1,64 @@
+name:                godaddy
+version:             0.1.0.0
+synopsis:            Haskell bindings for the GoDaddy API
+description:         Please see README.md
+homepage:            https://github.com/kgwinnup/godaddy-hs#readme
+license:             MIT
+license-file:        LICENSE
+author:              Kyle Gwinnup
+maintainer:          kpgwinnup@gmail.com
+copyright:           2016 Kyle Gwinnup
+category:            Web
+build-type:          Simple
+-- extra-source-files:
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     GoDaddy
+                     , DomainTypes
+                     , ErrorTypes
+                     , Domain
+  build-depends:       aeson
+                     , base
+                     , bytestring
+                     , http-client
+                     , http-client-tls
+                     , http-conduit >= 2.1.11
+                     , http-types >= 0.9.1
+                     , lens
+                     , text
+  default-language:    Haskell2010
+
+executable godaddy-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       aeson
+                     , base
+                     , base
+                     , bytestring
+                     , godaddy
+                     , http-client
+                     , http-conduit >= 2.1.11
+                     , http-types >= 0.9.1
+                     , text
+  default-language:    Haskell2010
+
+test-suite godaddy-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , bytestring
+                     , godaddy
+                     , http-client
+                     , http-conduit >= 2.1.11
+                     , http-types >= 0.9.1
+                     , text
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/kgwinnup/godaddy-hs

@@ -1,16 +1,16 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module ErrorTypes ( GError (GError)
-                  , Fields (Fields)
-                  ) where
+module Network.GoDaddy.ErrorTypes ( GError (GError)
+                                  , Fields (Fields)
+                                  ) where
 
 import           Data.Aeson
 
-data GError = GError { erCode :: Maybe String
-                     , erMessage :: Maybe String
+data GError = GError { erCode          :: Maybe String
+                     , erMessage       :: Maybe String
                      , erRetryAfterSec :: Maybe Integer
-                     , erName :: Maybe String
-                     , erFields :: Maybe [Fields] } deriving (Show)
+                     , erName          :: Maybe String
+                     , erFields        :: Maybe [Fields] } deriving (Show)
 
 instance ToJSON GError where
   toJSON (GError c m r n f) =
@@ -29,10 +29,10 @@ instance FromJSON GError where
            <*> v .:? "fields"
   parseJSON _ = fail "Error object not found"
 
-data Fields = Fields { fiPath :: String
+data Fields = Fields { fiPath        :: String
                      , fiPathRelated :: Maybe String
-                     , fiCode :: String
-                     , fiMessage :: Maybe String } deriving (Show)
+                     , fiCode        :: String
+                     , fiMessage     :: Maybe String } deriving (Show)
 
 instance ToJSON Fields where
   toJSON (Fields p pr c m) =

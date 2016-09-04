@@ -1,24 +1,24 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module DomainTypes ( Contact(Contact)
-                   , Contacts(Contacts)
-                   , AddressMailing(AddressMailing)
-                   , DomainSummary(DomainSummary)
-                   , DomainUpdate(DomainUpdate)
-                   , PrivacyPurchase(PrivacyPurchase)
-                   , DomainPurchaseResponse(DomainPurchaseResponse)
-                   , DNSRecord(DNSRecord)
-                   , DomainTransferIn(DomainTransferIn)
-                   , LegalAgreement(LegalAgreement)
-                   , DomainAvailableResponse(DomainAvailableResponse)
-                   , IdentityDocumentCreate(IdentityDocumentCreate)
-                   , Schema(Schema)
-                   , SchemaDataType(SchemaDataType)
-                   , SchemaProperties(SchemaProperties)
-                   , DomainSuggestion(DomainSuggestion)
-                   , TldSummary(TldSummary)
-                   , DomainPurchase(DomainPurchase)
-                   )where
+module Network.GoDaddy.DomainTypes ( Contact(Contact)
+                                   , Contacts(Contacts)
+                                   , AddressMailing(AddressMailing)
+                                   , DomainSummary(DomainSummary)
+                                   , DomainUpdate(DomainUpdate)
+                                   , PrivacyPurchase(PrivacyPurchase)
+                                   , DomainPurchaseResponse(DomainPurchaseResponse)
+                                   , DNSRecord(DNSRecord)
+                                   , DomainTransferIn(DomainTransferIn)
+                                   , LegalAgreement(LegalAgreement)
+                                   , DomainAvailableResponse(DomainAvailableResponse)
+                                   , IdentityDocumentCreate(IdentityDocumentCreate)
+                                   , Schema(Schema)
+                                   , SchemaDataType(SchemaDataType)
+                                   , SchemaProperties(SchemaProperties)
+                                   , DomainSuggestion(DomainSuggestion)
+                                   , TldSummary(TldSummary)
+                                   , DomainPurchase(DomainPurchase)
+                                   ) where
 
 import           Data.Aeson
 

@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module AbuseTypes ( Pagination(Pagination)
-                  , AbuseTicketList(AbuseTicketList)
-                  , AbuseTicketCreate(AbuseTicketCreate)
-                  , AbuseTicketId(AbuseTicketId)
-                  , AbuseTicket(AbuseTicket)) where
+module Network.GoDaddy.AbuseTypes ( Pagination(Pagination)
+                                  , AbuseTicketList(AbuseTicketList)
+                                  , AbuseTicketCreate(AbuseTicketCreate)
+                                  , AbuseTicketId(AbuseTicketId)
+                                  , AbuseTicket(AbuseTicket)) where
 
 
 import           Data.Aeson

@@ -1,4 +1,3 @@
-
 {-# LANGUAGE OverloadedStrings #-}
 
 -- |
@@ -38,21 +37,24 @@ module Network.GoDaddy ( GoDaddyAuth(GoDaddyAuth)
                , getAbuseTicket
                , getAbuseTickets
                , createAbuseTicket
+               , deleteAftermarketListing
+               , addAftermarketExpiryListing
                ) where
 
-import           Control.Exception           as E
-import           Control.Lens                ((&), (.~), (^.))
-import           Data.Aeson                  (FromJSON, decode)
-import           Data.ByteString.Lazy        as L
-import           Data.Text                   (Text)
-import           Data.Text                   as T
-import           Data.Text.Encoding          (encodeUtf8)
+import           Control.Exception                as E
+import           Control.Lens                     ((&), (.~), (^.))
+import           Data.Aeson                       (FromJSON, decode)
+import           Data.ByteString.Lazy             as L
+import           Data.Text                        (Text)
+import           Data.Text                        as T
+import           Data.Text.Encoding               (encodeUtf8)
 import           Network.GoDaddy.AbuseTypes
+import           Network.GoDaddy.AftermarketTypes
 import           Network.GoDaddy.DomainTypes
 import           Network.GoDaddy.ErrorTypes
 import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
-import           Network.HTTP.Types.Status   (statusCode)
+import           Network.HTTP.Types.Status        (statusCode)
 
 data GoDaddyAuth = GoDaddyAuth String String deriving (Show)
 
@@ -214,6 +216,23 @@ createAbuseTicket auth ticket = sendRequest auth "POST" (abuseUrl ++ "/tickets")
 -- | Return the abuse ticket data for a given ticket id
 getAbuseTicket :: GoDaddyAuth -> Integer -> IO (Either GError AbuseTicket)
 getAbuseTicket auth id = sendRequest auth "GET" (abuseUrl ++ "/tickets/" ++ (show id)) >>= return . (\x -> maybeDecode x "000" "error extracting AbuseTicket")
+
+--
+-- Aftermarket
+--
+
+aftermarketUrl = "https://api.godaddy.com/v1/aftermarket"
+
+-- | Remove listings from GoDaddy Auction
+deleteAftermarketListing :: GoDaddyAuth -> String -> IO (Either GError AftermarketListingAction)
+deleteAftermarketListing auth domains = sendRequest auth "DELETE" (aftermarketUrl ++ "/listing/" ++ domains) >>= return . (\x -> maybeDecode x "000" "error extracting ListingAction")
+
+-- | Add expiry listings into GoDaddy Auction
+addAftermarketExpiryListing :: GoDaddyAuth -> [AftermarketListingExpiryCreate] -> IO (Either GError AftermarketListingAction)
+addAftermarketExpiryListing auth listings = sendRequest auth "POST" (aftermarketUrl ++ "/listing/expiry") >>= return . (\x -> maybeDecode x "000" "error extracting AftermarketListingAction")
+
+
+
 
 
 

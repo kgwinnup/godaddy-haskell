@@ -20,7 +20,7 @@ module Network.GoDaddy.DomainTypes ( Contact(Contact)
                                    , DomainPurchase(DomainPurchase)
                                    ) where
 
-import           Data.Aeson
+import Data.Aeson
 
 data Contact = Contact { nameFirst      :: String
                        , nameMiddle     :: Maybe String

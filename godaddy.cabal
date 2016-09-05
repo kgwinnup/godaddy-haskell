@@ -17,6 +17,7 @@ library
   exposed-modules:     Network.GoDaddy
                      , Network.GoDaddy.DomainTypes
                      , Network.GoDaddy.ErrorTypes
+                     , Network.GoDaddy.AbuseTypes
   build-depends:       aeson
                      , base >= 4.7 && < 5
                      , bytestring

@@ -35,6 +35,9 @@ module Network.GoDaddy ( GoDaddyAuth(GoDaddyAuth)
                , validatePurchaseSchema
                , suggestDomain
                , getTldsForSale
+               , getAbuseTicket
+               , getAbuseTickets
+               , createAbuseTicket
                ) where
 
 import           Control.Exception           as E

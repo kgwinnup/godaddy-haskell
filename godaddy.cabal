@@ -19,6 +19,7 @@ library
                      , Network.GoDaddy.ErrorTypes
                      , Network.GoDaddy.AbuseTypes
                      , Network.GoDaddy.AftermarketTypes
+                     , Network.GoDaddy.AgreementTypes
   build-depends:       aeson
                      , base >= 4.7 && < 5
                      , bytestring

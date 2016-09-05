@@ -50,6 +50,7 @@ import           Data.Text                        as T
 import           Data.Text.Encoding               (encodeUtf8)
 import           Network.GoDaddy.AbuseTypes
 import           Network.GoDaddy.AftermarketTypes
+import           Network.GoDaddy.AgreementTypes
 import           Network.GoDaddy.DomainTypes
 import           Network.GoDaddy.ErrorTypes
 import           Network.HTTP.Client
@@ -231,4 +232,19 @@ deleteAftermarketListing auth domains = sendRequest auth "DELETE" (aftermarketUr
 addAftermarketExpiryListing :: GoDaddyAuth -> [AftermarketListingExpiryCreate] -> IO (Either GError AftermarketListingAction)
 addAftermarketExpiryListing auth listings = sendRequest auth "POST" (aftermarketUrl ++ "/listing/expiry") >>= return . (\x -> maybeDecode x "000" "error extracting AftermarketListingAction")
 
+--
+-- Agreements
+--
+
+agreementsUrl = "https://api.godaddy.com/v1/agreements"
+
+-- | Retrieve Legal Agreements for provided agreements keys
+getLegalAgreementsForKeys :: GoDaddyAuth -> String -> IO (Either GError [A.LegalAgreement])
+getLegalAgreementsForKeys auth keys = sendRequest auth "GET" agreementsUrl >>= return . (\x -> maybeDecodeL x "000" "error extracting LegalAgreement")
+
+--
+-- Cart
+--
+
+cartUrl = "https://api.godaddy.com/v1/cart"
 

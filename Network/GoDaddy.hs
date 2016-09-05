@@ -232,7 +232,3 @@ addAftermarketExpiryListing :: GoDaddyAuth -> [AftermarketListingExpiryCreate] -
 addAftermarketExpiryListing auth listings = sendRequest auth "POST" (aftermarketUrl ++ "/listing/expiry") >>= return . (\x -> maybeDecode x "000" "error extracting AftermarketListingAction")
 
 
-
-
-
-

@@ -50,7 +50,7 @@ import           Data.Text                        as T
 import           Data.Text.Encoding               (encodeUtf8)
 import           Network.GoDaddy.AbuseTypes
 import           Network.GoDaddy.AftermarketTypes
-import           Network.GoDaddy.AgreementTypes
+import qualified Network.GoDaddy.AgreementTypes as A
 import           Network.GoDaddy.DomainTypes
 import           Network.GoDaddy.ErrorTypes
 import           Network.HTTP.Client

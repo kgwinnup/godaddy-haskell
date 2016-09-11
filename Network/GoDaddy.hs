@@ -57,6 +57,10 @@ import           Network.HTTP.Client
 import           Network.HTTP.Client.TLS
 import           Network.HTTP.Types.Status        (statusCode)
 
+-- | GoDaddy Authentication structure, takes key and secret key
+--
+-- > >>> let x = GoDaddyAuth <key> <secret>
+--
 data GoDaddyAuth = GoDaddyAuth String String deriving (Show)
 
 -- | Transform an authentication data type to a Text type. This value is then used in sendRequest to build http request headers.
@@ -114,22 +118,32 @@ updateDomainDetails :: GoDaddyAuth -> DomainUpdate -> IO (Either GError Bool)
 updateDomainDetails auth du = sendRequest auth "PATCH" domainUrl >>= return . errorOrTrue
 
 -- | Cancel a purchased domain
+--
+-- >>> deleteDomain auth "example.com"
 deleteDomain :: GoDaddyAuth -> String -> IO (Either GError Bool)
 deleteDomain auth domain = sendRequest auth "DELETE" (domainUrl ++ "/" ++ domain) >>= return . errorOrTrue
 
 -- | Retrieve details for the specified Domain
+--
+-- >>> getDomain auth "example.io"
 getDomain :: GoDaddyAuth -> String -> IO (Either GError DomainSummary)
 getDomain auth domain = sendRequest auth "GET" (domainUrl ++ "/" ++ domain) >>= return . (\x -> maybeDecode x "000" "error extracting DomainSummary")
 
 -- | Update domain contacts
+--
+-- >>> setDomainContacts auth "example.com" contacts
 setDomainContacts :: GoDaddyAuth -> String -> Contacts -> IO (Either GError Bool)
 setDomainContacts auth domain contacts = sendRequest auth "PATCH" (domainUrl ++ "/" ++ domain ++ "/contacts") >>= return . errorOrTrue
 
 -- | Submit a privacy cancellation request for the given domain
+--
+-- >>> cancelDomainPrivacy auth "example.com"
 cancelDomainPrivacy :: GoDaddyAuth -> String -> IO (Either GError Bool)
 cancelDomainPrivacy auth domain = sendRequest auth "DELETE" (domainUrl ++ "/" ++ domain ++ "/privacy") >>= return . errorOrTrue
 
 -- | Purchase privacy for a specified domain
+--
+-- >>> purchaseDomainPrivacy auth "example.com" privacyPuchase
 purchaseDomainPrivacy :: GoDaddyAuth -> String -> PrivacyPurchase -> IO (Either GError DomainPurchaseResponse)
 purchaseDomainPrivacy auth domain privacy = sendRequest auth "POST" (domainUrl ++ "/" ++ domain ++ "/privacy/purchase") >>= return . (\x -> maybeDecode x "000" "error extracting DomainPurchaseResponse")
 

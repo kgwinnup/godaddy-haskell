@@ -1,5 +1,5 @@
 name:                godaddy
-version:             0.1.0.2
+version:             0.1.0.3
 synopsis:            Haskell bindings for the GoDaddy API
 description:         Please see README.md
 homepage:            https://github.com/kgwinnup/godaddy-hs#readme
@@ -25,7 +25,6 @@ library
                      , Network.GoDaddy.AbuseTypes
                      , Network.GoDaddy.AftermarketTypes
                      , Network.GoDaddy.AgreementTypes
-                     , Network.GoDaddy.Aliases
   build-depends:       aeson
                      , base >= 4.7 && < 5
                      , bytestring

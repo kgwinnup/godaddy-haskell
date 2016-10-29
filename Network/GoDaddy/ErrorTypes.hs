@@ -1,54 +1,37 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Network.GoDaddy.ErrorTypes ( GError (GError)
                                   , Fields (Fields)
                                   ) where
 
 import           Data.Aeson
+import           Data.Aeson.TH
+import           Data.Char
+import           GHC.Generics
 
-data GError = GError { erCode          :: Maybe String
-                     , erMessage       :: Maybe String
-                     , erRetryAfterSec :: Maybe Integer
-                     , erName          :: Maybe String
-                     , erFields        :: Maybe [Fields] } deriving (Show)
+data GError = GError { eCode          :: Maybe String
+                     , eMessage       :: Maybe String
+                     , eRetryAfterSec :: Maybe Integer
+                     , eName          :: Maybe String
+                     , eFields        :: Maybe [Fields] } deriving (Generic, Show)
 
 instance ToJSON GError where
-  toJSON (GError c m r n f) =
-    object [ "code" .= c
-           , "message" .= m
-           , "retryAfterSec" .= r
-           , "name" .= n
-           , "fields" .= f ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 1 x) }
 
 instance FromJSON GError where
-  parseJSON (Object v) =
-    GError <$> v .:? "code"
-           <*> v .:? "message"
-           <*> v .:? "retryAfterSec"
-           <*> v .:? "name"
-           <*> v .:? "fields"
-  parseJSON _ = fail "Error object not found"
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 1 x) }
 
-data Fields = Fields { fiPath        :: String
-                     , fiPathRelated :: Maybe String
-                     , fiCode        :: String
-                     , fiMessage     :: Maybe String } deriving (Show)
+data Fields = Fields { fPath        :: String
+                     , fPathRelated :: Maybe String
+                     , fCode        :: String
+                     , fMessage     :: Maybe String } deriving (Generic, Show)
 
 instance ToJSON Fields where
-  toJSON (Fields p pr c m) =
-    object [ "path" .= p
-           , "pathRelated" .= pr
-           , "code" .= c
-           , "message" .= m ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 1 x) }
 
 instance FromJSON Fields where
-  parseJSON (Object v) =
-    Fields <$> v .: "path"
-           <*> v .:? "pathRelated"
-           <*> v .: "code"
-           <*> v .:? "message"
-  parseJSON _ = fail "Fields object not found"
-
-
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 1 x) }
 
 

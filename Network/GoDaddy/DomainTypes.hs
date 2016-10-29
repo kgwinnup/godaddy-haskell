@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveGeneric     #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Network.GoDaddy.DomainTypes ( Contact(Contact)
                                    , Contacts(Contacts)
@@ -20,7 +22,18 @@ module Network.GoDaddy.DomainTypes ( Contact(Contact)
                                    , DomainPurchase(DomainPurchase)
                                    ) where
 
-import Data.Aeson
+import           Data.Aeson
+import           Data.Aeson.TH
+import           Data.Char
+import           GHC.Generics
+
+data AddressMailing = AddressMailing { address1   :: String
+                                     , address2   :: Maybe String
+                                     , city       :: String
+                                     , state      :: String
+                                     , postalCode :: String
+                                     , country    :: String } deriving (Show)
+$(deriveJSON defaultOptions ''AddressMailing)
 
 data Contact = Contact { nameFirst      :: String
                        , nameMiddle     :: Maybe String
@@ -31,31 +44,7 @@ data Contact = Contact { nameFirst      :: String
                        , phone          :: String
                        , fax            :: Maybe String
                        , addressMailing :: AddressMailing } deriving (Show)
-
-instance ToJSON Contact where
-  toJSON (Contact f m l o j e p fa a) =
-    object [ "nameFirst" .= f
-           , "nameMiddle" .= m
-           , "nameLast" .= l
-           , "organization" .= o
-           , "jobTitle" .= j
-           , "email" .= e
-           , "phone" .= p
-           , "fax" .= fa
-           , "addressMailing" .= a ]
-
-instance FromJSON Contact where
-  parseJSON (Object v) =
-    Contact <$> v .: "nameFirst"
-            <*> v .:? "nameMiddle"
-            <*> v .: "nameLast"
-            <*> v .:? "organization"
-            <*> v .:? "jobTitle"
-            <*> v .: "email"
-            <*> v .: "phone"
-            <*> v .:? "fax"
-            <*> v .: "addressMailing"
-  parseJSON _ = fail "Contact object not found"
+$(deriveJSON defaultOptions ''Contact)
 
 data Contacts = Contacts { registrant :: Contact
                          , admin      :: Maybe Contact
@@ -76,32 +65,6 @@ instance FromJSON Contacts where
              <*> v .:? "contactTech"
              <*> v .:? "contactBilling"
   parseJSON _ = fail "Contacts object not found"
-
-data AddressMailing = AddressMailing { address1   :: String
-                                     , address2   :: Maybe String
-                                     , city       :: String
-                                     , state      :: String
-                                     , postalCode :: String
-                                     , country    :: String } deriving (Show)
-
-instance ToJSON AddressMailing where
-  toJSON (AddressMailing a1 a2 c s p co) =
-    object [ "address1" .= a1
-           , "address2" .= a2
-           , "city" .= c
-           , "state" .= s
-           , "postalCode" .= p
-           , "country" .= co ]
-
-instance FromJSON AddressMailing where
-  parseJSON (Object v) =
-    AddressMailing <$> v .: "address1"
-                   <*> v .:? "address2"
-                   <*> v .: "city"
-                   <*> v .: "state"
-                   <*> v .: "postalCode"
-                   <*> v .: "country"
-  parseJSON _ = fail "AddressMailing object not found"
 
 data RealNameValidation = RealNameValidation { r_status :: Maybe String } deriving (Show)
 
@@ -134,124 +97,35 @@ data DomainSummary = DomainSummary { domainId            :: Float
                                    , contactAdmin        :: Maybe Contact
                                    , contactTech         :: Maybe Contact
                                    , realNameValidation  :: Maybe RealNameValidation
-                                   , subAccountId        :: Maybe String} deriving (Show)
-
-instance ToJSON DomainSummary where
-  toJSON (DomainSummary id d s e ep hr l p ra r rd tp ca ac ns cr cb cad ct rnv sai) =
-    object [ "domainId" .= id
-           , "domain" .= d
-           , "status" .= s
-           , "expires" .= e
-           , "expirationProtected" .= ep
-           , "holdRegistrar" .= hr
-           , "locked" .= l
-           , "privacy" .= p
-           , "renewAuto" .= ra
-           , "renewable" .= r
-           , "renewDeadline" .= rd
-           , "transferProtected" .= tp
-           , "createdAt" .= ca
-           , "authCode" .= ac
-           , "nameServers" .= ns
-           , "contactRegistrant" .= cr
-           , "contactBilling" .= cb
-           , "contactAdmin" .= cad
-           , "contactTech" .= ct
-           , "realNameValidation" .= rnv
-           , "subaccountId" .= sai]
-
-instance FromJSON DomainSummary where
-  parseJSON (Object v) =
-    DomainSummary <$> v .: "domainId"
-                  <*> v .: "domain"
-                  <*> v .: "status"
-                  <*> v .:? "expires"
-                  <*> v .: "expirationProtected"
-                  <*> v .: "holdRegistrar"
-                  <*> v .: "locked"
-                  <*> v .: "privacy"
-                  <*> v .: "renewAuto"
-                  <*> v .: "renewable"
-                  <*> v .: "renewDeadline"
-                  <*> v .: "transferProtected"
-                  <*> v .: "createdAt"
-                  <*> v .:? "authCode"
-                  <*> v .:? "nameServers"
-                  <*> v .:? "contactRegistrant"
-                  <*> v .:? "contactBilling"
-                  <*> v .:? "contactAdmin"
-                  <*> v .:? "contactTech"
-                  <*> v .:? "realNameValidation"
-                  <*> v .:? "subaccountId"
-  parseJSON _ = fail "DomainSummary object not found"
+                                   , subaccountId        :: Maybe String} deriving (Show)
+$(deriveJSON defaultOptions ''DomainSummary)
 
 
 data DomainUpdate = DomainUpdate { dlocked       :: Maybe Bool
                                  , dnameServers  :: Maybe [String]
                                  , drenewAuto    :: Maybe Bool
-                                 , dsubaccountId :: Maybe String } deriving (Show)
+                                 , dsubaccountId :: Maybe String } deriving (Generic, Show)
 
 instance ToJSON DomainUpdate where
-  toJSON (DomainUpdate l ns ra si) =
-    object [ "locked" .= l
-           , "nameServers" .= ns
-           , "renewAuto" .= ra
-           , "subaccountId" .= si ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = drop 1 }
 
 instance FromJSON DomainUpdate where
-  parseJSON (Object v) =
-    DomainUpdate <$> v .:? "locked"
-                 <*> v .:? "nameServers"
-                 <*> v .:? "renewAuto"
-                 <*> v .:? "subaccountId"
-  parseJSON _ = fail "DomainUpdate object not found"
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = drop 1 }
 
 data Consent = Consent { agreementKeys :: [String]
                        , agreedBy      :: String
-                       , agreeAt       :: String } deriving (Show)
-
-instance ToJSON Consent where
-  toJSON (Consent ag ab aa) = object [ "agreementKeys" .= ag
-                                     , "agreedBy" .= ab
-                                     , "agreedAt" .= aa ]
-instance FromJSON Consent where
-  parseJSON (Object v) =
-    Consent <$> v .: "agreementKeys"
-            <*> v .: "agreedBy"
-            <*> v .: "agreedAt"
-  parseJSON _ = fail "Consent object not found"
+                       , agreedAt      :: String } deriving (Show)
+$(deriveJSON defaultOptions ''Consent)
 
 data PrivacyPurchase = PrivacyPurchase { consent :: Consent } deriving (Show)
-
-instance ToJSON PrivacyPurchase where
-  toJSON (PrivacyPurchase c) = object [ "consent" .= c ]
-
-instance FromJSON PrivacyPurchase where
-  parseJSON (Object v) =
-    PrivacyPurchase <$> v .: "consent"
-  parseJSON _ = fail "PrivacyPurchase object not found"
+$(deriveJSON defaultOptions ''PrivacyPurchase)
 
 
 data DomainPurchaseResponse = DomainPurchaseResponse { orderId   :: Integer
                                                      , itemCount :: Integer
                                                      , total     :: Integer
                                                      , currency  :: String } deriving (Show)
-
-instance ToJSON DomainPurchaseResponse where
-  toJSON (DomainPurchaseResponse oi ic t c) =
-    object [ "orderId" .= oi
-           , "itemCount" .= ic
-           , "total" .= t
-           , "currency" .= c]
-
-instance FromJSON DomainPurchaseResponse where
-  parseJSON (Object v) =
-    DomainPurchaseResponse <$> v .: "orderId"
-                           <*> v .: "itemCount"
-                           <*> v .: "total"
-                           <*> v .: "currency"
-  parseJSON _ = fail "DomainPurchaseResponse object not found"
-
+$(deriveJSON defaultOptions ''DomainPurchaseResponse)
 
 data DNSRecord = DNSRecord { recordType     :: String
                            , recordName     :: String
@@ -261,85 +135,34 @@ data DNSRecord = DNSRecord { recordType     :: String
                            , recordService  :: Maybe String
                            , recordProtocol :: Maybe String
                            , recordPort     :: Maybe Integer
-                           , recordWeight   :: Maybe Integer } deriving (Show)
+                           , recordWeight   :: Maybe Integer } deriving (Generic, Show)
 
 instance ToJSON DNSRecord where
-  toJSON (DNSRecord t n d p ttl s pr po w) =
-    object [ "type" .= t
-           , "name" .= n
-           , "data" .= d
-           , "priority" .= p
-           , "ttl" .= ttl
-           , "service" .= s
-           , "protocol" .= pr
-           , "port" .= po
-           , "weight" .= w ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 6 x) }
 
 instance FromJSON DNSRecord where
-  parseJSON (Object v) =
-    DNSRecord <$> v .: "type"
-              <*> v .: "name"
-              <*> v .:? "data"
-              <*> v .:? "priority"
-              <*> v .:? "ttl"
-              <*> v .:? "service"
-              <*> v .:? "protocol"
-              <*> v .:? "port"
-              <*> v .:? "weight"
-  parseJSON _ = fail "DNSRecord object not found"
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 6 x) }
 
 data DomainRenew = DomainRenew { period :: Integer } deriving (Show)
-
-instance ToJSON DomainRenew where
-  toJSON (DomainRenew p) = object [ "period" .= p ]
-
-instance FromJSON DomainRenew where
-  parseJSON (Object v) = DomainRenew <$> v .: "period"
-
+$(deriveJSON defaultOptions ''DomainRenew)
 
 data DomainTransferIn = DomainTransferIn { transAuthCode  :: String
                                          , transPeriod    :: Maybe Integer
                                          , transRenewAuto :: Maybe Bool
                                          , transPrivacy   :: Maybe Bool
-                                         , transConsent   :: Consent } deriving (Show)
+                                         , transConsent   :: Consent } deriving (Generic, Show)
 
 instance ToJSON DomainTransferIn where
-  toJSON (DomainTransferIn ac p ra pr c) =
-    object [ "authCode" .= ac
-           , "period" .= p
-           , "renewAuto" .= ra
-           , "privacy" .= pr
-           , "consent" .= c ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> (toLower $ head x):[] ++ (tail x)) . drop 5 }
 
 instance FromJSON DomainTransferIn where
-  parseJSON (Object v) =
-    DomainTransferIn <$> v .: "authCode"
-                     <*> v .:? "period"
-                     <*> v .:? "renewAuto"
-                     <*> v .:? "privacy"
-                     <*> v .: "consent"
-  parseJSON _ = fail "DomainTransferIn object not found"
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> (toLower $ head x):[] ++ (tail x)) . drop 5 }
 
 data LegalAgreement = LegalAgreement { agreementKey :: String
                                      , title        :: String
                                      , url          :: Maybe String
                                      , content      :: String } deriving (Show)
-
-instance ToJSON LegalAgreement where
-  toJSON (LegalAgreement ak t u c) =
-    object [ "agreementKey" .= ak
-           , "title" .= t
-           , "url" .= u
-           , "content" .= c ]
-
-instance FromJSON LegalAgreement where
-  parseJSON (Object v) =
-    LegalAgreement <$> v .: "agreementKey"
-                   <*> v .: "title"
-                   <*> v .:? "url"
-                   <*> v .: "content"
-  parseJSON _ = fail "LegalAgreement object not found"
-
+$(deriveJSON defaultOptions ''LegalAgreement)
 
 data DomainAvailableResponse = DomainAvailableResponse { availDomain   :: String
                                                        , available     :: Bool
@@ -491,37 +314,27 @@ instance FromJSON SchemaProperties where
 data Schema = Schema { schemaId         :: String
                      , schemaProperties :: [SchemaProperties]
                      , schemaRequired   :: [String]
-                     , schemaModels     :: Schema } deriving (Show)
+                     , schemaModels     :: Schema } deriving (Generic, Show)
 
 instance ToJSON Schema where
-  toJSON (Schema sid sp sr sm) =
-    object [ "id" .= sid
-           , "properties" .= sp
-           , "required" .= sr
-           , "models" .= sm ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 6 x) }
 
 instance FromJSON Schema where
-  parseJSON (Object v) =
-    Schema <$> v .: "id"
-           <*> v .: "properties"
-           <*> v .: "required"
-           <*> v .: "models"
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 6 x) }
 
-data DomainSuggestion = DomainSuggestion { suggestedDomain :: String } deriving (Show)
+data DomainSuggestion = DomainSuggestion { suggestedDomain :: String } deriving (Generic, Show)
 
 instance ToJSON DomainSuggestion where
-  toJSON (DomainSuggestion sd) = object [ "domain" .= sd ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 9 x) }
 
 instance FromJSON DomainSuggestion where
-  parseJSON (Object v) = DomainSuggestion <$> v .: "domain"
-  parseJSON _ = fail "DomainSuggestion object not found"
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 9 x) }
 
 data TldSummary = TldSummary { tldName :: String
-                             , tldType :: String } deriving (Show)
+                             , tldType :: String } deriving (Generic, Show)
 
 instance ToJSON TldSummary where
-  toJSON (TldSummary n t) = object [ "name" .= n, "type" .= t ]
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 3 x) }
 
 instance FromJSON TldSummary where
-  parseJSON (Object v) = TldSummary <$> v .: "name" <*> v .: "type"
-  parseJSON _ = fail "TldSummary object not found"
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> map toLower $ drop 3 x) }

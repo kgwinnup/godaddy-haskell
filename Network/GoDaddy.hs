@@ -50,7 +50,7 @@ import           Data.Text                        as T
 import           Data.Text.Encoding               (encodeUtf8)
 import           Network.GoDaddy.AbuseTypes
 import           Network.GoDaddy.AftermarketTypes
-import qualified Network.GoDaddy.AgreementTypes as A
+import qualified Network.GoDaddy.AgreementTypes   as A
 import           Network.GoDaddy.DomainTypes
 import           Network.GoDaddy.ErrorTypes
 import           Network.HTTP.Client
@@ -61,14 +61,9 @@ import           Network.HTTP.Types.Status        (statusCode)
 --
 -- > >>> let x = GoDaddyAuth <key> <secret>
 --
-data GoDaddyAuth = GoDaddyAuth { goDaddyKey :: String
+data GoDaddyAuth = GoDaddyAuth { goDaddyKey    :: String
                                , goDaddySecret :: String } deriving (Show)
 
-type Domain = String
-type DNSType = String
-type TicketId = Integer
-type AgreementKeys = String
-type Tld = String
 
 -- | Transform an authentication data type to a Text type. This value is then used in sendRequest to build http request headers.
 --
@@ -127,66 +122,101 @@ updateDomainDetails auth du = sendRequest auth "PATCH" domainUrl >>= return . er
 -- | Cancel a purchased domain
 --
 -- > >>> deleteDomain auth "example.com"
-deleteDomain :: GoDaddyAuth -> Domain -> IO (Either GError Bool)
+deleteDomain :: GoDaddyAuth -- ^ godaddy auth
+             -> String -- ^ domain name
+             -> IO (Either GError Bool)
 deleteDomain auth domain = sendRequest auth "DELETE" (domainUrl ++ "/" ++ domain) >>= return . errorOrTrue
 
 -- | Retrieve details for the specified Domain
 --
 -- > >>> getDomain auth "example.io"
-getDomain :: GoDaddyAuth -> Domain -> IO (Either GError DomainSummary)
+getDomain :: GoDaddyAuth -- ^ godaddy auth
+          -> String -- ^ domain name
+          -> IO (Either GError DomainSummary)
 getDomain auth domain = sendRequest auth "GET" (domainUrl ++ "/" ++ domain) >>= return . (\x -> maybeDecode x "000" "error extracting DomainSummary")
 
 -- | Update domain contacts
 --
 -- > >>> setDomainContacts auth "example.com" contacts
-setDomainContacts :: GoDaddyAuth -> Domain -> Contacts -> IO (Either GError Bool)
+setDomainContacts :: GoDaddyAuth -- ^ godaddy auth
+                  -> String -- ^ domain name
+                  -> Contacts -- ^ contacts
+                  -> IO (Either GError Bool)
 setDomainContacts auth domain contacts = sendRequest auth "PATCH" (domainUrl ++ "/" ++ domain ++ "/contacts") >>= return . errorOrTrue
 
 -- | Submit a privacy cancellation request for the given domain
 --
 -- > >>> cancelDomainPrivacy auth "example.com"
-cancelDomainPrivacy :: GoDaddyAuth -> Domain -> IO (Either GError Bool)
+cancelDomainPrivacy :: GoDaddyAuth -- ^ godaddy auth
+                    -> String -- ^ domain name
+                    -> IO (Either GError Bool)
 cancelDomainPrivacy auth domain = sendRequest auth "DELETE" (domainUrl ++ "/" ++ domain ++ "/privacy") >>= return . errorOrTrue
 
 -- | Purchase privacy for a specified domain
 --
 -- >>> purchaseDomainPrivacy auth "example.com" privacyPuchase
-purchaseDomainPrivacy :: GoDaddyAuth -> Domain -> PrivacyPurchase -> IO (Either GError DomainPurchaseResponse)
+purchaseDomainPrivacy :: GoDaddyAuth -- ^ godaddy auth
+                      -> String -- ^ domain name
+                      -> PrivacyPurchase -- ^ privacy purchase
+                      -> IO (Either GError DomainPurchaseResponse)
 purchaseDomainPrivacy auth domain privacy = sendRequest auth "POST" (domainUrl ++ "/" ++ domain ++ "/privacy/purchase") >>= return . (\x -> maybeDecode x "000" "error extracting DomainPurchaseResponse")
 
 -- | Add the specified DNS Records to the specified Domain
-addDomainRecord :: GoDaddyAuth -> Domain -> DNSRecord -> IO (Either GError Bool)
+addDomainRecord :: GoDaddyAuth -- ^ godaddy auth
+                -> String -- ^ domain name
+                -> DNSRecord -- ^ dnsrecord
+                -> IO (Either GError Bool)
 addDomainRecord auth domain record = sendRequest auth "PATCH" (domainUrl ++ "/" ++ domain ++ "/records") >>= return . errorOrTrue
 
 -- | Replace all DNS Records for the specified Domain
-replaceAllDNSRecords :: GoDaddyAuth -> Domain -> [DNSRecord] -> IO (Either GError Bool)
+replaceAllDNSRecords :: GoDaddyAuth -- ^ godaddy auth
+                     -> String -- ^ domain name
+                     -> [DNSRecord] -- ^ list of dns records
+                     -> IO (Either GError Bool)
 replaceAllDNSRecords auth domain records = sendRequest auth "PUT" (domainUrl ++ "/" ++ domain ++ "/records") >>= return . errorOrTrue
 
 -- | Retrieve DNS Records for the specified Domain, optionally with the specified Type and/or Name
-getDomainRecords :: GoDaddyAuth -> Domain -> Maybe String -> Maybe String -> IO (Either GError [DNSRecord])
+getDomainRecords :: GoDaddyAuth -- ^ godaddy auth
+                 -> String -- ^ domain name
+                 -> Maybe String -- ^ DNS Record Type for which DNS Records are to be retrieved
+                 -> Maybe String -- ^ DNS Record Name for which DNS Records are to be retrieved
+                 -> IO (Either GError [DNSRecord])
 getDomainRecords auth domain (Just t) (Just n) = sendRequest auth "GET" (domainUrl ++ "/" ++ domain ++ "/records/" ++ t ++ "/" ++ n) >>= return . (\x -> maybeDecodeL x "000" "error extracting DNSRecord")
 getDomainRecords auth domain (Just t) _ = sendRequest auth "GET" (domainUrl ++ "/" ++ domain ++ "/records/" ++ t) >>= return . (\x -> maybeDecodeL x "000" "error extracting DNSRecord")
 getDomainRecords auth domain _ (Just n) = sendRequest auth "GET" (domainUrl ++ "/" ++ domain ++ "/records/" ++ n) >>= return . (\x -> maybeDecodeL x "000" "error extracting DNSRecord")
 getDomainRecords auth domain _ _ = sendRequest auth "GET" (domainUrl ++ "/" ++ domain ++ "/records") >>= return . (\x -> maybeDecodeL x "000" "error etracting DNSRecord")
 
 -- | Replace all DNS Records for the specified Domain with the specified Type
-replaceAllDNSRecordsByType :: GoDaddyAuth -> Domain -> DNSType -> IO (Either GError Bool)
+replaceAllDNSRecordsByType :: GoDaddyAuth -- ^ godaddy auth
+                           -> String -- ^ domain name
+                           -> String -- ^ domain record type
+                           -> IO (Either GError Bool)
 replaceAllDNSRecordsByType auth domain typ = sendRequest auth "PUT" (domainUrl ++ "/" ++ domain ++ "/records/" ++ typ) >>= return . errorOrTrue
 
 -- | Replace all DNS Records for the specified Domain with the specified Type and Name
-replaceAllDNSRecordsByTypeAndName :: GoDaddyAuth -> Domain -> DNSType -> String -> IO (Either GError Bool)
+replaceAllDNSRecordsByTypeAndName :: GoDaddyAuth -- ^ godaddy auth
+                                  -> String -- ^ domain name
+                                  -> String -- ^ DNS record type
+                                  -> String -- ^ DNS record name
+                                  -> IO (Either GError Bool)
 replaceAllDNSRecordsByTypeAndName auth domain typ name = sendRequest auth "PUT" (domainUrl ++ "/" ++ domain ++ "/records/" ++ typ ++ "/" ++ name) >>= return . errorOrTrue
 
 -- | Renew the specified Domain
-renewDomain :: GoDaddyAuth -> Domain -> IO (Either GError DomainPurchaseResponse)
+renewDomain :: GoDaddyAuth -- ^ godaddy auth
+            -> String -- ^ domain name
+            -> IO (Either GError DomainPurchaseResponse)
 renewDomain auth domain = sendRequest auth "POST" (domainUrl ++ "/" ++ domain ++ "/renew") >>= return . (\x -> maybeDecode x "000" "error extracting DomainPurchaseResponse")
 
 -- | Purchase and start or restart transfer process
-startDomainTransfer :: GoDaddyAuth -> Domain -> IO (Either GError DomainTransferIn)
+startDomainTransfer :: GoDaddyAuth -- ^ godaddy auth
+                    -> String -- ^ domain name
+                    -> IO (Either GError DomainTransferIn)
 startDomainTransfer auth domain = sendRequest auth "POST" (domainUrl ++ "/" ++ domain ++ "/transfer") >>= return . (\x -> maybeDecode x "000" "error extracting DomainPurchaseResponse")
 
 -- | Re-send Contact E-mail Verification for specified Domain
-resendContactEmailVerification :: GoDaddyAuth -> Domain -> IO (Either GError Bool)
+resendContactEmailVerification :: GoDaddyAuth -- ^ godaddy auth
+                               -> String -- ^ domain name
+                               -> IO (Either GError Bool)
 resendContactEmailVerification auth domain = sendRequest auth "POST" (domainUrl ++ "/" ++ domain ++ "/verifyRegistrantEmail") >>= return . errorOrTrue
 
 -- | Retrieve the legal agreement(s) required to purchase the specified TLD and add-ons
@@ -194,11 +224,15 @@ getLegalAgreements :: GoDaddyAuth -> IO (Either GError [LegalAgreement])
 getLegalAgreements auth = sendRequest auth "GET" (domainUrl ++ "/agreements") >>= return . (\x -> maybeDecodeL x "000" "error extracting LegalAgreements")
 
 -- | Determine whether or not the specified domain is available for purchase
-isDomainAvailable :: GoDaddyAuth -> Domain -> IO (Either GError DomainAvailableResponse)
+isDomainAvailable :: GoDaddyAuth -- ^ godaddy auth
+                  -> String -- ^ domain name
+                  -> IO (Either GError DomainAvailableResponse)
 isDomainAvailable auth domain = sendRequest auth "GET" (domainUrl ++ "/available/?domain=" ++ domain) >>= return . (\x -> maybeDecode x "000" "error extracting DomainAvailableResponse")
 
 -- | Upload an identity document for Real Name Validation
-updateIdentityDocument :: GoDaddyAuth -> IdentityDocumentCreate -> IO (Either GError Bool)
+updateIdentityDocument :: GoDaddyAuth
+                       -> IdentityDocumentCreate
+                       -> IO (Either GError Bool)
 updateIdentityDocument auth doc = sendRequest auth "POST" (domainUrl ++ "/identityDocuments") >>= return . errorOrTrue
 
 -- | Purchase and register the specified Domain
@@ -206,7 +240,9 @@ purchaseDomain :: GoDaddyAuth -> DomainPurchase -> IO (Either GError DomainPurch
 purchaseDomain auth domain = sendRequest auth "POST" (domainUrl ++ "/purchase") >>= return . (\x -> maybeDecode x "000" "error extracting DomainPurchaseResponse")
 
 -- | Retrieve the schema to be submitted when registering a Domain for the specified TLD
-getSchemaForTld :: GoDaddyAuth -> Tld -> IO (Either GError Schema)
+getSchemaForTld :: GoDaddyAuth -- ^ godaddy auth
+                -> String -- ^ The Top-Level Domain whose schema should be retrieved
+                -> IO (Either GError Schema)
 getSchemaForTld auth tld = sendRequest auth "GET" (domainUrl ++ "/purchase/schema/" ++ tld) >>= return . (\x -> maybeDecode x "000" "error extracting Schema")
 
 -- | Validate the request body using the Domain Purchase Schema for the specified TLD
@@ -214,7 +250,9 @@ validatePurchaseSchema :: GoDaddyAuth -> DomainPurchase -> IO (Either GError Boo
 validatePurchaseSchema auth schema = sendRequest auth "POST" (domainUrl ++ "/purchase/validate") >>= return . errorOrTrue
 
 -- | Suggest alternate Domain names based on a seed Domain or set of keywords
-suggestDomain :: GoDaddyAuth -> String -> IO (Either GError [DomainSuggestion])
+suggestDomain :: GoDaddyAuth -- ^ godaddy auth
+              -> String  -- ^ Domain name or set of keywords for which alternative domain names will be suggested
+              -> IO (Either GError [DomainSuggestion])
 suggestDomain auth keywords = sendRequest auth "GET" (domainUrl ++ "/suggest") >>= return . (\x -> maybeDecodeL x "000" "error extracting DomainSuggestion")
 
 -- | Retrieves a list of TLDs supported and enabled for sale
@@ -236,7 +274,9 @@ createAbuseTicket :: GoDaddyAuth -> AbuseTicketCreate -> IO (Either GError Abuse
 createAbuseTicket auth ticket = sendRequest auth "POST" (abuseUrl ++ "/tickets") >>= return . (\x -> maybeDecode x "000" "error extracting AbuseTicketId")
 
 -- | Return the abuse ticket data for a given ticket id
-getAbuseTicket :: GoDaddyAuth -> TicketId -> IO (Either GError AbuseTicket)
+getAbuseTicket :: GoDaddyAuth -- ^ godaddy auth
+               -> Integer -- ^ ticket id
+               -> IO (Either GError AbuseTicket)
 getAbuseTicket auth id = sendRequest auth "GET" (abuseUrl ++ "/tickets/" ++ (show id)) >>= return . (\x -> maybeDecode x "000" "error extracting AbuseTicket")
 
 --
@@ -246,7 +286,9 @@ getAbuseTicket auth id = sendRequest auth "GET" (abuseUrl ++ "/tickets/" ++ (sho
 aftermarketUrl = "https://api.godaddy.com/v1/aftermarket"
 
 -- | Remove listings from GoDaddy Auction
-deleteAftermarketListing :: GoDaddyAuth -> String -> IO (Either GError AftermarketListingAction)
+deleteAftermarketListing :: GoDaddyAuth -- ^ godaddy auth
+                         -> String -- ^ A comma separated list of domain names
+                         -> IO (Either GError AftermarketListingAction)
 deleteAftermarketListing auth domains = sendRequest auth "DELETE" (aftermarketUrl ++ "/listing/" ++ domains) >>= return . (\x -> maybeDecode x "000" "error extracting ListingAction")
 
 -- | Add expiry listings into GoDaddy Auction
@@ -260,7 +302,9 @@ addAftermarketExpiryListing auth listings = sendRequest auth "POST" (aftermarket
 agreementsUrl = "https://api.godaddy.com/v1/agreements"
 
 -- | Retrieve Legal Agreements for provided agreements keys
-getLegalAgreementsForKeys :: GoDaddyAuth -> AgreementKeys -> IO (Either GError [A.LegalAgreement])
+getLegalAgreementsForKeys :: GoDaddyAuth -- ^ godaddy auth
+                          -> String -- ^ Keys for Agreements whose details are to be retrieved
+                          -> IO (Either GError [A.LegalAgreement])
 getLegalAgreementsForKeys auth keys = sendRequest auth "GET" agreementsUrl >>= return . (\x -> maybeDecodeL x "000" "error extracting LegalAgreement")
 
 --
@@ -268,4 +312,3 @@ getLegalAgreementsForKeys auth keys = sendRequest auth "GET" agreementsUrl >>= r
 --
 
 cartUrl = "https://api.godaddy.com/v1/cart"
-

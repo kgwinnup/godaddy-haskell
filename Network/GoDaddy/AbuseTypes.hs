@@ -37,10 +37,10 @@ data AbuseTicketCreate = AbuseTicketCreate { abuseType        :: String
                                            , abuseInfoUrl     :: Maybe String } deriving (Generic, Show)
 
 instance ToJSON AbuseTicketCreate where
-  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> (toLower $ head x):[] ++ (tail x)) . drop 5 }
+  toJSON = genericToJSON defaultOptions { fieldLabelModifier = (\x -> toLower (head x):[] ++ tail x) . drop 5 }
 
 instance FromJSON AbuseTicketCreate where
-  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> (toLower $ head x):[] ++ (tail x)) . drop 5 }
+  parseJSON = genericParseJSON defaultOptions { fieldLabelModifier = (\x -> toLower (head x):[] ++ tail x) . drop 5 }
 
 data AbuseTicket = AbuseTicket { id        :: String
                                , reporter  :: String
